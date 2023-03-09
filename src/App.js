@@ -1,64 +1,67 @@
-import { Fragment, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import AtividadeForm from './components/AtividadeForm';
-import Atividade from './components/Atividade';
+import AtividadeLista from './components/AtividadeLista';
 
-let initialState = [
-  {
-    id: 1,
-    prioridade: '3',
-    titulo: 'Título',
-    descricao: "Primeira atividade"
-  },
-  {
-    id: 2,
-    prioridade: '3',
-    titulo: 'Título',
-    descricao: "Segunda atividade"
-  },
-]
 //função de criar atividade
 function App() {
-  const [atividades, setAtividades] = useState(initialState)
+  const [index, setIndex] = useState(0);
+  const [atividades, setAtividades] = useState([]);
+  const [atividade, setAtividade] = useState({ id: 0 });
 
-  function addAtividade(e) {
-    e.preventDefault();
+  useEffect(() => {
+    atividades.length <= 0 ? setIndex(1) :
+      setIndex(Math.max.apply(Math, atividades.map((item) => item.id)) + 1)
+  }, [atividades]);
 
-    const atividade = {
-      id: document.getElementById('id').value,
-      prioridade: document.getElementById('prioridade').value,
-      titulo: document.getElementById('titulo').value,
-      descricao: document.getElementById('descricao').value,
-    };
+  function addAtividade(ativ) {
+    setAtividades([...atividades,    //spread operator
+    { ...ativ, id: index }]
+    );
+  }
 
-    //spread operator
-    setAtividades([...atividades, { ...atividade }]);
+  function cancelarAtividade() {
+    setAtividade({ id: 0 });
+  }
+
+  function atualizarAtividade(ativ) {
+    setAtividades(atividades.map(item => item.id === atividade.id ? ativ : item));
+    setAtividade({ id: 0 });
   }
 
   function deletarAtividade(id) {
-    const atividadesFiltradas = atividades.filter(atividade => atividade.id !== id);
+    const atividadesFiltradas = atividades.filter(
+      (atividade) => atividade.id !== id
+    );
     setAtividades([...atividadesFiltradas]);
   }
 
+  function pegarAtividade(id) {
+    const atividade = atividades.filter((atividade) => atividade.id === id);
+    setAtividade(atividade[0]);
+  }
+
+
+
   //JSX ... não é HTML 
+
   return (
     <>
       <AtividadeForm
         addAtividade={addAtividade}
+        cancelarAtividade={cancelarAtividade}
+        atualizarAtividade={atualizarAtividade}
+        ativSelecionada={atividade}
         atividades={atividades}
       />
-      <div className='mt-3'>
-        {atividades.map((ativ) => (
-          <Atividade
-            key={ativ.id}
-            ativ={ativ}
-            deletarAtividade={deletarAtividade}
-          />
-        ))}
 
-      </div>
+      <AtividadeLista
+        atividades={atividades}
+        deletarAtividade={deletarAtividade}
+        pegarAtividade={pegarAtividade}
+      />
     </>
   );
-}
+};
 
 export default App;
